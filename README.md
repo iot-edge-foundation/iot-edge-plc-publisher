@@ -128,6 +128,10 @@ The module accepts the following properties in the module twin:
 }
 ```
 
+## Credits
+
+This project leverages on [https://github.com/libplctag/libplctag.NET](https://github.com/libplctag/libplctag.NET) to provide connectivity to the PLC devices.
+
 ## License
 
 This project is licensed under the MIT License (see [./LICENSE.md](LICENSE.md)) for more details.
