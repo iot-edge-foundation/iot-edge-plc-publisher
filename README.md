@@ -10,7 +10,7 @@ To use the module, you need to deploy the following Azure IoT Edge module:
  "PlcPublisher": {
         "restartPolicy": "always",
         "settings": {
-            "image": "ghcr.io/kbeaugrand/azure-iotedge-plc-publisher:latest",
+            "image": "ghcr.io/kbeaugrand-org/azure-iotedge-plc-publisher:latest",
             "createOptions": "{}"
         },
         "status": "running",
@@ -127,6 +127,10 @@ The module accepts the following properties in the module twin:
     }
 }
 ```
+
+## Credits
+
+This project leverages on [https://github.com/libplctag/libplctag.NET](https://github.com/libplctag/libplctag.NET) to provide connectivity to the PLC devices.
 
 ## License
 
