@@ -1,6 +1,6 @@
-# IoT Edge Event Aggregation sample
+# IoT Edge PLC Publisher 
 
-This project is a sample demonstrating how to aggregate events from IoT Edge.
+This project aims to provide an Azure IoT Edge module for publishing PLC Tags values to Azure IoT Edge and Azure IoT Hub.
 
 ## Usage
 
