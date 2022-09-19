@@ -10,7 +10,7 @@ To use the module, you need to deploy the following Azure IoT Edge module:
  "PlcPublisher": {
         "restartPolicy": "always",
         "settings": {
-            "image": "ghcr.io/kbeaugrand/azure-iotedge-plc-publisher:latest",
+            "image": "ghcr.io/kbeaugrand-org/azure-iotedge-plc-publisher:latest",
             "createOptions": "{}"
         },
         "status": "running",
