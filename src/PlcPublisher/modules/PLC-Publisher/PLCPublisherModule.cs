@@ -22,6 +22,9 @@ namespace PLCPublisher
     using libplctag;
     using PLCPublisher.Commands.ListPrograms;
     using JUST;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Newtonsoft.Json.Linq;
 
     public class PLCPublisherModule : IHostedService
     {
@@ -34,6 +37,7 @@ namespace PLCPublisher
         private readonly ICommandHandler listUdtTypesCommandHandler;
         private readonly ICommandHandler listProgramsCommandHandler;
         private readonly ConcurrentBag<object> runningTasks = new ConcurrentBag<object>();
+        private readonly ConcurrentQueue<EnqueuedMessage> messagesQueue = new ConcurrentQueue<EnqueuedMessage>();
         private CancellationTokenSource runningTaskCancellationTokenSource;
 
         public PLCPublisherModule(
@@ -75,6 +79,9 @@ namespace PLCPublisher
 
             this.logger.LogInformation("Method handlers registered");
 
+            StartPublisherThread();
+            this.logger.LogInformation("Publisher thread started");
+
             await RegisterTags(twin.Properties.Desired);
 
             this.logger.LogInformation("Tags registered");
@@ -86,6 +93,67 @@ namespace PLCPublisher
 
             await UnregisterTags();
             await RegisterTags(desiredProperties);
+        }
+
+
+        public class EnqueuedMessage
+        {
+            public DateTimeOffset EnqueuedTime { get; set; } = DateTimeOffset.UtcNow;
+
+            public TagTwinDefinition Tag { get; set; }
+
+            public object Data { get; set; }
+        }
+
+        private void StartPublisherThread()
+        {
+            ThreadPool.QueueUserWorkItem(async (state) =>
+            {
+                do
+                {
+                    List<EnqueuedMessage> currentMessages = new List<EnqueuedMessage>();
+
+                    do
+                    {
+                        if (!this.messagesQueue.TryDequeue(out var item))
+                        {
+                            break;
+                        }
+
+                        currentMessages.Add(item);
+                    } while (true);
+
+                    var messages = currentMessages.Select(item =>
+                    {
+                        var jsonTagValue = JsonConvert.SerializeObject(item.Data);
+                        this.logger.LogTrace($"handling message for tag {item.Tag.Name} with value {jsonTagValue}");
+
+                        if (item.Tag.Transform != null)
+                        {
+                            this.logger.LogTrace("Transforming message with {0}", item.Tag.Transform.ToString());
+                            JObject inputMessage = new JObject();
+                            inputMessage.Add("input", JToken.FromObject(item.Data));
+
+                            jsonTagValue = JsonTransformer.Transform(item.Tag.Transform.ToString(), inputMessage.ToString()).ToString();
+                        }
+
+                        this.logger.LogTrace("Tag {0} value: {1}", item.Tag.TagName, jsonTagValue);
+
+                        string jsonData = $"{{\"timestamp\":\"{item.EnqueuedTime.ToString("o")}\",\"{item.Tag.Name}\":{jsonTagValue}}}";
+
+                        return new Message(Encoding.UTF8.GetBytes(jsonData))
+                        {
+                            CreationTimeUtc = item.EnqueuedTime.UtcDateTime,
+                        };
+                    }).ToArray();
+
+                    if (!messages.Any())
+                        continue;
+
+                    this.logger.LogDebug("Sending {0} messages", messages.Count());
+                    await this.moduleClient.SendEventBatchAsync("tag", messages);
+                } while (true);
+            });
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -131,7 +199,7 @@ namespace PLCPublisher
 
         private void StartTagPolling(TagTwinDefinition tag, CancellationToken cancellationToken)
         {
-            this.logger.LogDebug($"Tag: {tag.Name}, PollingInterval: {tag.PollingInterval}");
+            this.logger.LogDebug($"Tag: {tag.TagName}, PollingInterval: {tag.PollingInterval}");
 
             ThreadPool.QueueUserWorkItem(new WaitCallback(async c =>
             {
@@ -154,28 +222,13 @@ namespace PLCPublisher
                         await plcTag.ReadAsync(cancellationToken);
                         this.logger.LogTrace("Polling tag {0} completed ({1})", tag.TagName, plcTag.GetStatus());
 
-                        var newJsonTagValue = JsonConvert.SerializeObject(plcTag.Value);
-
-                        if (string.Equals(newJsonTagValue, jsonTagValue))
+                        this.messagesQueue.Enqueue(new EnqueuedMessage
                         {
-                            continue;
-                        }
+                            Data = plcTag.Value,
+                            Tag = tag
+                        });
 
-                        jsonTagValue = newJsonTagValue;
-
-                        if (tag.Transform != null)
-                        {
-                            jsonTagValue = JsonTransformer.Transform(tag.Transform, JObject.Parse(jsonTagValue)).ToString();
-                        }
-
-                        this.logger.LogDebug("Tag {0} value: {1}", tag.TagName, jsonTagValue);
-
-                        string jsonData = $"{{\"timestamp\":\"{DateTime.UtcNow.ToString("o")}\",\"{tag.Name}\":{jsonTagValue}}}";
-
-                        var message = new Message(Encoding.UTF8.GetBytes(jsonData));
-
-                        this.logger.LogTrace("Sending message {0}", jsonData);
-                        await this.moduleClient.SendEventAsync("tag", message);
+                        this.logger.LogTrace("Message queued for tag {0}", tag.TagName);
                     }
                     catch (Exception e)
                         when (e is TaskCanceledException || e is OperationCanceledException)
