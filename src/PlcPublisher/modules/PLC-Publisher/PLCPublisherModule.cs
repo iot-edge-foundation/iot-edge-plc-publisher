@@ -24,7 +24,6 @@ namespace PLCPublisher
     using JUST;
     using System.Collections.Generic;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     public class PLCPublisherModule : IHostedService
     {
