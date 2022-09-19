@@ -13,6 +13,7 @@ namespace PLCPublisher
     using PLCPublisher.Commands.ReadArray;
     using Microsoft.Azure.Devices.Shared;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using PLCPublisher.TwinSettings;
     using System;
     using System.Collections.Concurrent;
@@ -20,6 +21,7 @@ namespace PLCPublisher
     using System.Text;
     using libplctag;
     using PLCPublisher.Commands.ListPrograms;
+    using JUST;
 
     public class PLCPublisherModule : IHostedService
     {
@@ -161,6 +163,11 @@ namespace PLCPublisher
 
                         jsonTagValue = newJsonTagValue;
 
+                        if (tag.Transform != null)
+                        {
+                            jsonTagValue = JsonTransformer.Transform(tag.Transform, JObject.Parse(jsonTagValue)).ToString();
+                        }
+
                         this.logger.LogDebug("Tag {0} value: {1}", tag.TagName, jsonTagValue);
 
                         string jsonData = $"{{\"timestamp\":\"{DateTime.UtcNow.ToString("o")}\",\"{tag.Name}\":{jsonTagValue}}}";
@@ -176,7 +183,7 @@ namespace PLCPublisher
                         logger.LogInformation("Polling for tag {0} cancelled", tag.TagName);
                         return;
                     }
-                    catch (Exception e) 
+                    catch (Exception e)
                         when (e is LibPlcTagException)
                     {
                         this.logger.LogError(e, "Error while polling tag");

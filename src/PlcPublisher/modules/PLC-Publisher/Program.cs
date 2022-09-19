@@ -9,6 +9,7 @@ namespace PLCPublisher
     using PLCPublisher.Commands.ReadArray;
     using PLCPublisher.Factories;
     using PLCPublisher.Commands.ListPrograms;
+    using JUST;
 
     class Program
     {
@@ -37,7 +38,7 @@ namespace PLCPublisher
             services.AddTransient<ListUdtTypesCommandHandler>();  
             services.AddTransient<ListProgramsCommandHandler>();
             services.AddTransient<ReadTagCommandHandler>(); 
-            services.AddTransient<ReadArrayCommandHandler>();         
+            services.AddTransient<ReadArrayCommandHandler>();    
 
             services.AddHostedService<PLCPublisherModule>();
         }
