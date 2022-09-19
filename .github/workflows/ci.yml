@@ -9,7 +9,7 @@ on:
 env:
   registry_name: ghcr.io
   image_name: ${{ github.repository_owner }}/azure-iotedge-plc-publisher
-  module_path: ./src/modules/PLC-Publisher
+  module_path: ./src/PlcPublisher/modules/PLC-Publisher/
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
