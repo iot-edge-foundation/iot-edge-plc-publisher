@@ -127,18 +127,25 @@ namespace PLCPublisher
                         var jsonTagValue = JsonConvert.SerializeObject(item.Data);
                         this.logger.LogTrace($"handling message for tag {item.Tag.Name} with value {jsonTagValue}");
 
+                        JObject jsonEvent = null;
+
                         if (item.Tag.Transform != null)
                         {
                             this.logger.LogTrace("Transforming message with {0}", item.Tag.Transform.ToString());
                             JObject inputMessage = new JObject();
                             inputMessage.Add("input", JToken.FromObject(item.Data));
 
-                            jsonTagValue = JsonTransformer.Transform(item.Tag.Transform.ToString(), inputMessage.ToString()).ToString();
+                            jsonEvent = JObject.Parse(JsonTransformer.Transform(item.Tag.Transform.ToString(), inputMessage.ToString()));
+                        }
+                        else
+                        {
+                            jsonEvent = JObject.Parse($"{{\"{item.Tag.Name}\":{jsonTagValue}}}");
                         }
 
-                        this.logger.LogTrace("Tag {0} value: {1}", item.Tag.TagName, jsonTagValue);
+                        jsonEvent.Add("timestamp", item.EnqueuedTime.ToString("o"));
+                        var jsonData = jsonEvent.ToString();
 
-                        string jsonData = $"{{\"timestamp\":\"{item.EnqueuedTime.ToString("o")}\",\"{item.Tag.Name}\":{jsonTagValue}}}";
+                        this.logger.LogTrace("{1}", jsonData);
 
                         return new Message(Encoding.UTF8.GetBytes(jsonData))
                         {
