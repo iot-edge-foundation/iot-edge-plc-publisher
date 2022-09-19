@@ -1,4 +1,4 @@
-# IoT Edge PLC Publisher 
+# IoT Edge PLC Publisher
 
 This project aims to provide an Azure IoT Edge module for publishing PLC Tags values to Azure IoT Edge and Azure IoT Hub.
 
