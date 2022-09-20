@@ -213,16 +213,14 @@ namespace PLCPublisher
                 this.runningTasks.Add(new object());
                 this.logger.LogTrace($"Starting polling for tag {tag.TagName}");
 
-                using var plcTag = this.tagFactory.Create(tag);
-                plcTag.ReadCacheMillisecondDuration = 1;
-
-                string jsonTagValue = string.Empty;
-
                 do
                 {
                     try
                     {
                         await timer.WaitForNextTickAsync(cancellationToken);
+
+                        using var plcTag = this.tagFactory.Create(tag);
+                        plcTag.ReadCacheMillisecondDuration = 1;
 
                         this.logger.LogTrace("Polling tag {0}", tag.TagName);
                         await plcTag.ReadAsync(cancellationToken);
