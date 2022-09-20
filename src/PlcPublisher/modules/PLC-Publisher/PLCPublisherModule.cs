@@ -213,18 +213,24 @@ namespace PLCPublisher
                 this.runningTasks.Add(new object());
                 this.logger.LogTrace($"Starting polling for tag {tag.TagName}");
 
+                using var plcTag = this.tagFactory.Create(tag);
+                plcTag.ReadCacheMillisecondDuration = 0;
+
                 do
                 {
                     try
                     {
                         await timer.WaitForNextTickAsync(cancellationToken);
 
-                        using var plcTag = this.tagFactory.Create(tag);
-                        plcTag.ReadCacheMillisecondDuration = 1;
-
                         this.logger.LogTrace("Polling tag {0}", tag.TagName);
-                        await plcTag.ReadAsync(cancellationToken);
+                        plcTag.Read();
                         this.logger.LogTrace("Polling tag {0} completed ({1})", tag.TagName, plcTag.GetStatus());
+
+                        if (plcTag.GetStatus() != Status.Ok)
+                        {
+                            this.logger.LogWarning($"Tag {tag.TagName} is not OK - {plcTag.GetStatus()}");
+                            continue;
+                        }
 
                         this.messagesQueue.Enqueue(new EnqueuedMessage
                         {
