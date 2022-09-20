@@ -69,7 +69,7 @@ This module exposes the following direct methods:
 - `ReadTag`: Read a tag value.
 - `ReadArray`: Read an array value.
 
-### Payloads
+#### Payloads
 
 For the `ListTags`, `ListUdtTypes` and `ListPrograms` methods, the payload is a JSON object with the following structure:
 
@@ -122,11 +122,43 @@ The module accepts the following properties in the module twin:
                 "tagType": "<the tag type>",
                 "pollingInterval": "<the polling interval in milliseconds>"
                 "arrayLength": "<OPTIONAL - the array size if reading an array>",
+                "transform": "<OPTIONAL - the transform to apply to the value>"
             ]
         }
     }
 }
 ```
+
+#### Transformation
+
+When polling values, the module can transform the value before sending it to Azure IoT Hub. The transformation is done using the [JMESPath](https://jmespath.org/) query language.
+
+> Note: the transformation uses [https://github.com/WorkMaze/JUST.net](https://github.com/WorkMaze/JUST.net).
+
+Ex:
+
+```json
+{
+    "gateway": "<PLC_IP>",
+    "path": "1,0",
+    "plcType": "ControlLogix",
+    "tagType": "ARRAY_DINT",
+    "tagName": "MY_ARRAY",
+    "arrayLength": 10,
+    "pollingInterval": 1000,
+    "transform": {
+        "VALUE_1": "#valueof($.input[0])",
+        "VALUE_2": "#valueof($.input[1])",
+        "VALUE_3": "#valueof($.input[2])",
+        "VALUE_4": "#valueof($.input[3])",
+        "VALUE_5": "#valueof($.input[4])",
+        "VALUE_6": "#valueof($.input[5])",
+        ...
+    }
+}
+
+```
+
 
 ## Credits
 
