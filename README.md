@@ -88,7 +88,7 @@ For ``ReadTag``, the payload is a JSON object with the following structure:
     "gateway": "`<the gateway ip or hostname>`",
     "path": "<the path to the PLC>",
     "plcType": "<the PLC type>",
-    "tag": "<the tag name>",
+    "tagName": "<the tag name>",
     "tagType": "<the tag type>"
 }
 ```
@@ -100,7 +100,7 @@ For ``ReadArray``, the payload is a JSON object with the following structure:
     "gateway": "`<the gateway ip or hostname>`",
     "path": "<the path to the PLC>",
     "plcType": "<the PLC type>",
-    "tag": "<the tag name>",
+    "tagName": "<the tag name>",
     "tagType": "<the tag type>",
     "arrayLength": "<the array size>",
 }
@@ -115,14 +115,16 @@ The module accepts the following properties in the module twin:
     "properties": {
         "desired": {
             "tags": [
-                "gateway": "`<the gateway ip or hostname>`",
-                "path": "<the path to the PLC>",
-                "plcType": "<the PLC type>",
-                "tag": "<the tag name>",
-                "tagType": "<the tag type>",
-                "pollingInterval": "<the polling interval in milliseconds>"
-                "arrayLength": "<OPTIONAL - the array size if reading an array>",
-                "transform": "<OPTIONAL - the transform to apply to the value>"
+                {
+                  "gateway": "`<the gateway ip or hostname>`",
+                  "path": "<the path to the PLC>",
+                  "plcType": "<the PLC type>",
+                  "tagName": "<the tag name>",
+                  "tagType": "<the tag type>",
+                  "pollingInterval": "<the polling interval in milliseconds>"
+                  "arrayLength": "<OPTIONAL - the array size if reading an array>",
+                  "transform": "<OPTIONAL - the transform to apply to the value>"
+               }
             ]
         }
     }
