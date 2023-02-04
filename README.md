@@ -26,6 +26,39 @@ To use the module, you need to deploy the following Azure IoT Edge module:
     },
 ```
 
+> Note:
+> The default output of the module is ``tag``, you can also use this explicit output name in your configuration.
+
+### Module properties
+
+This module uses desired properties to configure the tags you want to pull.
+Here is an example of configuration that pulls every 1 sec a tag from a PLC.
+
+```json
+{
+...
+    "properties": {
+        "desired": {
+            "tags": [
+                {
+                    "gateway": "192.168.0.100",
+                    "path": "1,0",
+                    "plcType": "ControlLogix",
+                    "tagType": "ARRAY_DINT",
+                    "tagName": "MY_ARRAY",
+                    "arrayLength": 10,
+                    "pollingInterval": 1000,
+                }
+            ]
+        }
+    }
+...
+}
+```
+
+> Note:
+> Please see below mode configuration options that might fit your needs.
+
 ### Supported PLCs
 
 It can be one of the following values:
