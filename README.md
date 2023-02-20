@@ -32,7 +32,7 @@ To use the module, you need to deploy the following Azure IoT Edge module:
 ### Module properties
 
 This module uses desired properties to configure the tags you want to pull.
-Here is an example of configuration that pulls every 1 sec a tag from a PLC.
+Here is an example of configuration that pulls every 1 sec a tag array of 10 values from a PLC.
 
 ```json
 {
