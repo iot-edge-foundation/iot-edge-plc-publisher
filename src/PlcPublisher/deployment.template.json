@@ -66,16 +66,6 @@
               "image": "${MODULES.PLC-Publisher}",
               "createOptions": {}
             }
-          },
-          "ProgramSequenceModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.ProgramSequenceModule}",
-              "createOptions": {}
-            }
           }
         }
       }
@@ -84,8 +74,7 @@
       "properties.desired": {
         "schemaVersion": "1.1",
         "routes": {
-          "PlcToIoTHub": "FROM /messages/modules/PLCPublisher/outputs/* INTO $upstream",
-          "ProgramSequenceModuleToIoTHub": "FROM /messages/modules/ProgramSequenceModule/outputs/* INTO $upstream"
+          "PlcToIoTHub": "FROM /messages/modules/PLCPublisher/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
